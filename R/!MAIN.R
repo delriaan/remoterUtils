@@ -153,79 +153,86 @@ connect_remote %<~% function(credentials = NULL, prompt = "REMOTE_SESSION::", po
 #'
 #' @export
 
-  force(prompt)
-
-  action <- rlang::enexpr(action) |> as.character();
-  .tmp_env <- new.env();
-
-  # Create a logical selection vector
-  .logivec <- c(`TRUE` = identical(TRUE, credentials)
-          , OS_ENV	= identical("ENV", credentials)
-          , OBJ 		= class(credentials) %in% c("list", "environment")
-          , default = rlang::is_empty(credentials) || TRUE
-          ) |> which() |> min();
-
-  # Set the local environment
-  eval(rlang::exprs(
-    `TRUE` = .tmp_env %$% {
-            load(tcltk::tk_choose.files(multi = FALSE, caption = "Select the workspace image file containing the cipher and key:"),
-                    envir = .tmp_env)
-            this <- ls(pattern = "cipher", all.names = TRUE)
-            if (length(this) > 1) {
-                    this <- tcltk::tk_select.list(choices = this, preselect = this[1],
-                            title = "Choose a cipher object to use: ")
-            }
-            cipher <- rlang::sym(this) |> eval()
-            this <- ls(pattern = "key", all.names = TRUE)
-            if (length(this) > 1) {
-                    this <- tcltk::tk_select.list(choices = this, preselect = this[1],
-                            title = "Choose a decryption key object to use: ")
-            }
-            shared_key <- get(this)
-    }
-    , OS_ENV = .tmp_env %$% {
-            cipher <- as.raw(sodium::hex2bin((strsplit(Sys.getenv("REMOTER_CIPHER"),
-                    split = " ", fixed = TRUE)[[1]][[1]])))
-            attr(cipher, "addr") <- strsplit(Sys.getenv("REMOTER_HOST"),
-                    split = " ", fixed = TRUE)[[1]][1]
-            attr(cipher, "port") <- ifelse(is.null(port), as.integer(strsplit(Sys.getenv("REMOTER_HOST"),
-                    split = " ", fixed = TRUE)[[1]][2]), port)
-            attr(cipher, "nonce") <- as.raw(sodium::hex2bin((strsplit(Sys.getenv("REMOTER_CIPHER"),
-                    split = " ", fixed = TRUE)[[1]][[2]])))
-            shared_key <- as.raw(sodium::hex2bin(Sys.getenv("REMOTER_SHARED_KEY")))
-            }
-    , OBJ = {
-            this <- ls(pattern = "cipher", all.names = TRUE, envir = as.environment(credentials))
-            if (length(this) > 1) {
-                    this <- tcltk::tk_select.list(choices = this, preselect = this[1],
-                            title = "Choose a cipher object to use: ")
-            }
-            .tmp_env$cipher <- (as.environment(credentials))[[this]]
-            this <- ls(pattern = "key", all.names = TRUE, envir = as.environment(credentials))
-            if (length(this) > 1) {
-                    this <- tcltk::tk_select.list(choices = this, preselect = this[1],
-                            title = "Choose a decryption key object to use: ")
-            }
-            .tmp_env$shared_key <- (as.environment(credentials))[[this]]
-            }
-    , default = {
-            message("No valid values for argument 'credentials': exiting ...")
-            return()
-    })[[.logivec]]);
-
-  # Make the call
-  rlang::inject(.tmp_env %$% {
-          .fun <- (as.environment("package:remoter")[[!!action]])
-          .args <- {
-                  list(addr = attr(cipher, "addr")
-                          , port = attr(cipher, "port")
-                          , password = rawToChar(sodium::data_decrypt(cipher, shared_key))
-                          , prompt = !!prompt
-                          )}
-          do.call(.fun, .args[intersect(names(formals(.fun)), names(.args))])
-  });
-
-  # Clean up
+        force(prompt)
+        
+        action <- rlang::enexpr(action) |> as.character();
+        .tmp_env <- new.env(); 
+        
+        # Create a logical selection vector
+        .logivec <- c(`TRUE` = identical(TRUE, credentials)
+        			, OS_ENV	= identical("ENV", credentials)
+        			, OBJ 		= class(credentials) %in% c("list", "environment")
+        			, default = rlang::is_empty(credentials) || TRUE
+        			) |> which() |> min();
+        
+        # Set the local environment 
+        eval(rlang::exprs(
+        	`TRUE` = .tmp_env %$% {
+        		load(tcltk::tk_choose.files(multi = FALSE, caption = "Select the workspace image file containing the cipher and key:"), 
+        			envir = .tmp_env)
+        		this <- ls(pattern = "cipher", all.names = TRUE)
+        		if (length(this) > 1) {
+        			this <- tcltk::tk_select.list(choices = this, preselect = this[1], 
+        				title = "Choose a cipher object to use: ")
+        		}
+        		cipher <- rlang::sym(this) |> eval()
+        		this <- ls(pattern = "key", all.names = TRUE)
+        		if (length(this) > 1) {
+        			this <- tcltk::tk_select.list(choices = this, preselect = this[1], 
+        				title = "Choose a decryption key object to use: ")
+        		}
+        		shared_key <- get(this)
+        	}
+        	, OS_ENV = .tmp_env %$% {
+        			cipher <- as.raw(sodium::hex2bin((strsplit(Sys.getenv("REMOTER_CIPHER"), 
+        				split = " ", fixed = TRUE)[[1]][[1]])))
+        			attr(cipher, "addr") <- strsplit(Sys.getenv("REMOTER_HOST"), 
+        				split = " ", fixed = TRUE)[[1]][1]
+        			attr(cipher, "port") <- ifelse(is.null(port), as.integer(strsplit(Sys.getenv("REMOTER_HOST"), 
+        				split = " ", fixed = TRUE)[[1]][2]), port)
+        			attr(cipher, "nonce") <- as.raw(sodium::hex2bin((strsplit(Sys.getenv("REMOTER_CIPHER"), 
+        				split = " ", fixed = TRUE)[[1]][[2]])))
+        			shared_key <- as.raw(sodium::hex2bin(Sys.getenv("REMOTER_SHARED_KEY")))
+        		}
+        	, OBJ = {
+        			this <- ls(pattern = "cipher", all.names = TRUE, envir = as.environment(credentials))
+        			if (length(this) > 1) {
+        				this <- tcltk::tk_select.list(choices = this, preselect = this[1], 
+        					title = "Choose a cipher object to use: ")
+        			}
+        			.tmp_env$cipher <- (as.environment(credentials))[[this]]
+        			this <- ls(pattern = "key", all.names = TRUE, envir = as.environment(credentials))
+        			if (length(this) > 1) {
+        				this <- tcltk::tk_select.list(choices = this, preselect = this[1], 
+        					title = "Choose a decryption key object to use: ")
+        			}
+        			.tmp_env$shared_key <- (as.environment(credentials))[[this]]
+        		}
+        	, default = {
+        			message("No valid values for argument 'credentials': exiting ...")
+        			return()
+        	})[[.logivec]]);
+        # Make the call
+        rlang::inject(.tmp_env %$% {
+        	.fun <- (as.environment("package:remoter")[[!!action]])
+        	.args <- { list(
+        		  addr = if (stringi::stri_detect_regex(str = attr(cipher, "addr"), max_count = 1, pattern = "([0-9]{1,3}[.]){3}[0-9]{1,3}")){ 
+                   # IPV4 format
+                   attr(cipher, "addr") 
+                 } else { 
+                   # Lookup IPV4 address from hostname provided
+                   system2(command = "ping", args = c(attr(cipher, "addr"),"-n 1"), stdout = TRUE) |>
+                   stringi::stri_extract_first_regex("([0-9]{1,3}[.]){3}[0-9]{1,3}") |> 
+                   na.omit() |> unique()
+                 }
+        			, port = attr(cipher, "port")
+        			, password = rawToChar(sodium::data_decrypt(cipher, shared_key))
+        			, prompt = !!prompt
+        			)}
+        	do.call(.fun, .args[intersect(names(formals(.fun)), names(.args))])
+        });
+        
+         # Clean up
         environment() %$% rm(.tmp_env);
 }
 #
