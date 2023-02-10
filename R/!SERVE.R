@@ -59,9 +59,9 @@ if (rlang::is_empty(getOption("thisSession"))){ options(thisSession = Sys.getenv
           na.omit() |> unique()
         }
 
-.port <- .cmd_args[grepl(pattern = "port", x = .cmd_args, ignore.case = TRUE)] |> 
-            stringi::stri_split_fixed("=", simplify = TRUE) |> 
-            as.vector() |> as.integer() |> magrittr::extract(2);
+.port <- stringi::stri_extract_first_regex(.cmd_args, pattern = "[Pp][Oo][Rr][Tt][=].+") |>
+      stringi::stri_split_fixed("=", simplify = TRUE) |> 
+      as.vector() |> as.integer() |> magrittr::extract(2);
 
 if (rlang::is_empty(attr(.cipher, "port"))){
   message("Using custom port"); 
