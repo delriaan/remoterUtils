@@ -42,9 +42,13 @@ if (FALSE){
 options(sessOpts = c(
   Sys.getenv("COMPUTERNAME") |> make.names() |> tolower()
   , Sys.getenv("USERNAME") |> tolower()
+  , stri_extract_all_regex(.cmd_args, "session[=][._/\\a-zA-Z0-9]+") |> 
+      stri_split_fixed("=", simplify = TRUE) |> 
+      magrittr::extract(2) |>
+      purrr::discard(is.na)
   ));
 
-options(thisSession = purrr::as_mapper(~ifelse(rlang::is_empty(.x), getOption("sessOpts")[1], .x[1]))(purrr::keep(.cmd_args, ~.x %in% getOption("sessOpts"))));
+options(thisSession = expand.grid(.cmd_args, getOption("sessOpts")) |> apply(1, purrr::as_mapper(~.x[2][grepl(.x[2], .x[1])])) |> unlist(use.names = FALSE))
 if (rlang::is_empty(getOption("thisSession"))){ options(thisSession = Sys.getenv("COMPUTERNAME") |> make.names() |> tolower()) }
 
 # :: Expression-based actions
