@@ -37,7 +37,7 @@ make_cipher %<~% function(file_prefix, host_ip , host_port, username, password, 
 #' @export
 
   # file_prefix
-  if (missing(file_prefix)){ file_prefix <- Sys.getenv("COMPUTERNAME") |> tolower() |> make.names() }
+  file_prefix <- if (missing(file_prefix)){ Sys.getenv("COMPUTERNAME") |> tolower() |> make.names() } else { file_prefix |> tolower() |> make.names() }
   .cipher_name <- paste0(file_prefix, "_cipher");
   .file_name  <- sprintf("~/%s_remoter_auth.rdata", file_prefix);
 
