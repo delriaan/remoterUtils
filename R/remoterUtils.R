@@ -3,7 +3,7 @@
 #' @description
 #' \code{remoterUtils} provides utility functions facilitating management of \code{remoter} sessions as well as authentication objects (see \code{\link[remoter]{remoter-package}} for \code{remoter} documentation).  Code is designed for use in a Windows environment.
 #'
-#' @name remoterUtils
+#' @name remoterUtils-package
 NULL
 
 gen_pass <- function(glyphs = "@$", length = NULL, raw = FALSE, chatty = FALSE){
@@ -178,21 +178,20 @@ make_cipher_env <- function(cipher = NULL, shared_key = NULL, session = make.nam
   nonce  = attr(cipher, "nonce")
   addr   = attr(cipher, "addr")
   port   = attr(cipher, "port")
-  rm(this, .tmp_env)
 
   .out = rlang::list2("remoter_{session}" := mget(ls()) |> purrr::map(paste, collapse = "") |> jsonlite::toJSON()) |> unlist()
   writeClipboard(.out)
   return(.out)
 }
 #
-make_batch_file <- function(server_dir, auth_root, batch.file_name = "start_Rserver.bat", source.file_name = "Rserve.R", sessOpts = make.names(tolower(Sys.getenv("COMPUTERNAME")))){
+make_batch_file <- function(server_dir, auth_root, batch.file_name = "start_Rserver.bat", source.file_name = "Rserve.R", session = make.names(tolower(Sys.getenv("COMPUTERNAME")))){
 #' Make a \code{remoter} Server Batch File
 #'
 #' @param server_dir (string) The server working directory
 #' @param auth_root (string) The path to the authentication objects
 #' @param batch.file_name (string) The name of the batch file to be created in \code{server_dir}
 #' @param source.file_name (string) The name of the R source file to be created in \code{server_dir}
-#' @param sessOpts (string[]) The session labels expected by the spawned server
+#' @param session (string) The session label for the spawned server: must match the cipher object that is ultimately loaded
 #' @references \href{https://superuser.com/questions/149951/does-in-batch-file-mean-all-command-line-arguments}
 #'
 #' @note Existing contents in \code{server_dir} are deleted before repopulating
@@ -211,14 +210,13 @@ make_batch_file <- function(server_dir, auth_root, batch.file_name = "start_Rser
       tcltk::tk_choose.dir(default = path.expand("~"), caption = "Select source directory for Rserver authentication files:")
     } else { path.expand("~") }
   }
-  sessOpts <- rlang::enexpr(sessOpts) |> rlang::expr_text();
 
   if (!dir.exists(server_dir)){
     pass <- dir.create(server_dir)
     if (pass){
       glue::glue("Created {server_dir}") |> message()
     } else {
-      stop(glue::glue("Failed to creat {server_dir}"))
+      stop(glue::glue("Failed to create {server_dir}"))
     }
   }
 
@@ -226,7 +224,8 @@ make_batch_file <- function(server_dir, auth_root, batch.file_name = "start_Rser
 
   cat(glue::glue("@echo off\nRscript -e \"source('{server_dir}/{source.file_name}')\" --args %%*"), file = paste(server_dir, batch.file_name, sep = "/"));
 
-  cat(glue::glue("library(remoterUtils); \nserver_fun(auth_root = \"{auth_root}\", server_dir = \"{server_dir}\", sessOpts = {sessOpts})"), file = paste(server_dir, source.file_name, sep = "/"), append = FALSE);
+  cat(glue::glue("library(remoterUtils); \nserver_fun(auth_root = \"{auth_root}\", server_dir = \"{server_dir}\", session = \"{session}\", !!!commandArgs(trailingOnly = TRUE))"), file = paste(server_dir, source.file_name, sep = "/"), append = FALSE)
+
 }
 #
 connect_remote <- function(credentials = NULL, prompt = "REMOTE_SESSION::", port = NULL, action = client, session = make.names(tolower(Sys.getenv("COMPUTERNAME"))), ...){
@@ -256,7 +255,7 @@ connect_remote <- function(credentials = NULL, prompt = "REMOTE_SESSION::", port
 #' @param prompt (string) The prompt to use during the remote session
 #' @param port (integer) The port to use if not provided in the cipher (useful for specific overrides or ad-hoc sessions)
 #' @param action (string, symbol) The function to use to connect to the remote session (e.g., \code{client}, \code{batch}, etc.)
-#' @param session (string) The name of the target session when \code{credentials} is \emph{'ENV'}
+#' @param session (string) The session prefix for the ciphers when \code{credentials} is \emph{'ENV'}
 #' @param ... Not used
 #'
 #' @section References:
@@ -271,6 +270,7 @@ connect_remote <- function(credentials = NULL, prompt = "REMOTE_SESSION::", port
 #' @export
 
   force(prompt)
+  if (!stringi::stri_detect_regex(prompt, "[:]{2}$")){ prompt <- paste0(prompt, "::") }
 
   action <- rlang::enexpr(action) |> as.character();
 
@@ -300,18 +300,12 @@ connect_remote <- function(credentials = NULL, prompt = "REMOTE_SESSION::", port
         attr(os_env_var, "names") <- names(os_env_var) |>
             stringi::stri_replace_first_fixed(pattern = "remoter_", replacement = "", vectorize_all = FALSE);
 
-        shared_key <- os_env_var[[session]]$shared_key;
+        shared_key <- as.raw(sodium::hex2bin(os_env_var[[session]]$shared_key));;
         cipher <- as.raw(sodium::hex2bin(os_env_var[[session]]$cipher));
 
+        attr(cipher, "nonce") <- as.raw(sodium::hex2bin(os_env_var[[session]]$nonce));
         attr(cipher, "addr") <- os_env_var[[session]]$addr;
-
-        # Look up IPV4 address from hostname provided
-            system2(command = "ping", args = c(attr(.cipher, "addr"),"-n 1"), stdout = TRUE) |>
-            stringi::stri_extract_first_regex("([0-9]{1,3}[.]){3}[0-9]{1,3}") |>
-            na.omit() |> unique()
-
         attr(cipher, "port") <- os_env_var[[session]]$port;
-        attr(cipher, "nonce") <- os_env_var[[session]]$nonce;
       }
     , OBJ = {
         this <- ls(pattern = "cipher", all.names = TRUE, envir = as.environment(credentials))
@@ -328,44 +322,43 @@ connect_remote <- function(credentials = NULL, prompt = "REMOTE_SESSION::", port
       })[[.logivec]]);
 
   # Validate the address ----
-  if (!stringi::stri_detect_regex(str = attr(cipher, "addr"), max_count = 1, pattern = "([0-9]{1,3}[.]){3}[0-9]{1,3}")){
-    # Look up IPV4 address from hostname provided
-    attr(cipher, "addr") <- system2(command = "ping", args = c(attr(cipher, "addr"),"-n 1"), stdout = TRUE) |>
-      stringi::stri_extract_first_regex("([0-9]{1,3}[.]){3}[0-9]{1,3}") |>
-      na.omit() |> unique()
-  }
+  if (rlang::is_empty(hostname2addr(addr = attr(cipher, "addr")))){ stop(glue::glue("Invalid hostname: {attr(cipher, 'addr')}")) }
 
   # Connect ----
-  rlang::inject({
-      .fun <- parse(text = glue::glue("remoter::{action}")) |> eval()
-      .args <- { list(
-          addr = attr(cipher, "addr")
-          , port = attr(cipher, "port")
-          , password = rawToChar(sodium::data_decrypt(cipher, shared_key))
-          , prompt = !!prompt)
-        }
-      do.call(.fun, .args[intersect(names(formals(.fun)), names(.args))])
-    });
+  .fun <- parse(text = glue::glue("remoter::{action}")) |> eval()
+  .args <- { list(
+      addr = attr(cipher, "addr")
+      , port = attr(cipher, "port") |> as.integer()
+      , password = rawToChar(sodium::data_decrypt(cipher, shared_key))
+      , prompt = prompt
+      )}
+  do.call(.fun, .args[intersect(names(formals(.fun)), names(.args))])
 }
 #
-server_fun <- function(auth_root = path.expand("~"), server_dir = "~", sessOpts = make.names(tolower(Sys.getenv("COMPUTERNAME"))), ...){
+server_fun <- function(auth_root = path.expand("~"), server_dir = "~", session = make.names(tolower(Sys.getenv("COMPUTERNAME"))), ...){
 #' Manage a \code{remoter} Session
 #'
 #' \code{server_fun} starts or stops a \code{\link[remoter]{remoter}} session
 #'
-#' @param server_dir The path to the authentication objects to read ('.Rdata' files) containing the ciphers and decryption keys.  These should be generated from \code{\link{make_cipher}}
+#' @param auth_root The path to the authentication objects to read ('.Rdata' files) containing the ciphers and decryption keys.  These should be generated from \code{\link{make_cipher}}
 #' @param server_dir The path to the working directory for th spawned server
-#' @param sessOpts (string[]) Prefixes for the ciphers found in \code{auth_root}: these are the session names that are matched with cipher object names.
-#' @param ... Not used
+#' @param session (string) The session prefix for the ciphers loaded from \code{auth_root}
+#' @param ... \code{\link[rlang]{dots_list}}: additional arguments passed externally
 #'
 #' @export
 
-  chatty <- "trace" %in% as.character(rlang::enexpr(...));
+  .dot_args <- as.character(rlang::enexprs(...)) |> unlist();
+  chatty <- "trace" %in% .dot_args;
+  alt_server_dir <- NULL;
+  get_pass <- purrr::as_mapper(~{ rawToChar(sodium::data_decrypt(bin = zMQ.config[[paste0(.x, "_cipher")]], key = .y)) });
+
+  options(action = ifelse(any(grepl("action[=]stop", .dot_args)), "stop", "start"));
 
   # :: Populate the server environment with authentication data ----
   if (chatty){ message("Populate the server environment with authentication data") }
   if (!"zMQ.config" %in% search()){
   attach(new.env(), name = "zMQ.config");
+
   makeActiveBinding(
   	sym = "zMQ.config"
   	, fun = function(){ invisible(as.environment("zMQ.config")) }
@@ -373,99 +366,93 @@ server_fun <- function(auth_root = path.expand("~"), server_dir = "~", sessOpts 
   	);
   }
 
-  dir(auth_root, pattern = "remoter_auth.[Rr]data$", full.names = TRUE) |>
+  dir(auth_root, pattern = glue::glue("{session}.+remoter_auth.[Rr]data$"), full.names = TRUE) |>
   	purrr::walk(load, envir = zMQ.config, verbose = TRUE);
 
-  .cmd_args <- commandArgs(trailingOnly = TRUE);
-
-  options(action = ifelse(any(.cmd_args %in% c("action=stop")), "stop", "start"));
-
-  # Manually set values for testing purposes
-  if (FALSE){
-    .cmd_args <- unique(c(.cmd_args, "action=start", "port=90210", "session=z_host_hpc", "workdir=C:\\TEMP"))
+  # :: Navigate to the working directory and set the session ----
+  if (chatty){ message("Navigate to the working directory and set the session") }
+  if (any(grepl("workdir[=]", .dot_args))){
+    alt_server_dir <- c(stringi::stri_extract_first_regex(.dot_args, "workdir[=].+") |>
+      na.omit() |>
+      stringi::stri_split_fixed("=", simplify = TRUE) |>
+      magrittr::extract(2), "~/")[1]
+  }
+  if (!rlang::is_empty(alt_server_dir)){
+    if (dir.exists(alt_server_dir)){
+      setwd(alt_server_dir)
+    } else {
+      message(glue::glue("Working directory {alt_server_dir} does not exist: trying '{server_dir}' ..."));
+      if (dir.exists(server_dir)){
+        setwd(server_dir)
+      } else {
+        message(glue::glue("Working directory {alt_server_dir} does not exist: using '~/' ..."));
+        setwd("~/");
+      }
+    }
+  } else if (!rlang::is_empty(server_dir)){
+    if (dir.exists(server_dir)){
+      setwd(server_dir)
+    } else {
+      message(glue::glue("Working directory {alt_server_dir} does not exist: using '~/' ..."));
+      setwd("~/");
+    }
+  } else{
+    message("Working directory set to '~/' ...");
+    setwd("~/");
   }
 
-  # :: Navigate to the working directory, and start/stop the session ----
-  if (chatty){ message("Navigate to the working directory, and start/stop the session") }
-  .dir <- c(stringi::stri_extract_first_regex(.cmd_args, "workdir[=].+") |>
-            na.omit() |>
-            stringi::stri_split_fixed("=", simplify = TRUE) |>
-            magrittr::extract(2), "~/")[1]
-
-  if (dir.exists(.dir)){ setwd(.dir) } else { setwd("~/") }
-
-  # `sessOpts` contains the pre-defined remote session configurations: essentially, a registry
-  # This is useful for setting ports mapped to sessions under specific execution use cases
-  # The values of `sessOpts` must map to the prefixes of saved workspace files ending in "remoter_auth.rdata"
-
-  options(sessOpts = c(
-    Sys.getenv("COMPUTERNAME") |> make.names() |> tolower()
-    , Sys.getenv("USERNAME") |> tolower()
-    , stringi::stri_extract_all_regex(.cmd_args, "session[=].+", simplify = TRUE) |>
-        as.vector() |> na.omit() |>
-        stringi::stri_split_fixed("=", simplify = TRUE, omit_empty = TRUE, tokens_only = TRUE) |>
-        magrittr::extract(2) |>
-        purrr::discard(is.na)
-    ));
-
-  options(thisSession = expand.grid(.cmd_args, getOption("sessOpts")) |>
-            apply(1, purrr::as_mapper(~.x[2][grepl(.x[2], .x[1])])) |>
-            unlist(use.names = FALSE)
-          );
-  if (rlang::is_empty(getOption("thisSession"))){ options(thisSession = Sys.getenv("COMPUTERNAME") |> make.names() |> tolower()) }
+  if (rlang::is_empty(session)){ session <- make.names(tolower(Sys.getenv("COMPUTERNAME"))) }
 
   # :: Expression-based actions ----
   if (chatty){ message("Expression-based actions") }
 
-  .cipher <- zMQ.config %$% get(ls(pattern = getOption("thisSession")));
-  .addr <- if (stringi::stri_detect_regex(str = attr(.cipher, "addr"), max_count = 1, pattern = "([0-9]{1,3}[.]){3}[0-9]{1,3}")){
-            # IPV4 format
-            attr(.cipher, "addr")
-          } else {
-            # Look up IPV4 address from hostname provided
-            system2(command = "ping", args = c(attr(.cipher, "addr"),"-n 1"), stdout = TRUE) |>
-            stringi::stri_extract_first_regex("([0-9]{1,3}[.]){3}[0-9]{1,3}") |>
-            na.omit() |> unique()
-          }
+  cipher <- get(glue::glue("{session}_cipher"), envir = zMQ.config);
+  .addr <- attr(cipher, "addr");
 
   # Set the port to the first non-empty port available on the system selected from the following:
   .port <- list(
-            cipher = attr(.cipher, "port") |> as.integer()
-            , custom = {
-                stringi::stri_extract_first_regex(.cmd_args, pattern = "[Pp][Oo][Rr][Tt][=].+") |>
-                stringi::stri_split_fixed("=", simplify = TRUE) |>
-                as.vector() |> as.integer() |>
-                magrittr::extract(2)
-              }
-            , random = parallelly::freePort()
-            ) |> purrr::discard(~{
-              is.na(.x) |
-              rlang::is_empty(.x) |
-              any(grepl(paste(.addr, .x, sep = ":"), system2("psexec64", "\\\\ITDHPC01-D netstat -an", stdout = TRUE)))
-            }) |> magrittr::extract(1) |> unlist();
-
+      cipher = attr(cipher, "port") |> as.integer()
+      , custom = {
+          stringi::stri_extract_first_regex(.dot_args, pattern = "[Pp][Oo][Rr][Tt][=].+") |>
+          stringi::stri_split_fixed("=", simplify = TRUE) |>
+          as.vector() |> as.integer() |>
+          magrittr::extract(2)
+        }
+      , random = parallelly::freePort()
+      ) |> purrr::discard(~{
+        is.na(.x) |
+        rlang::is_empty(.x)
+        # STUB: need port scanner code here, 2023.02.12
+      }) |>
+      magrittr::extract(1) |>
+      unlist();
 
   message(sprintf("Using %s port%s", names(.port), ifelse(names(.port) == "random", sprintf(" (%s)", .port), "")));
   .port <- unname(.port);
 
   .action <- if (getOption("action") == "start"){
-        # The address of the server is always the machine on which the process is invoked
-        rlang::expr(remoter::server(
-          port = !!.port
-          , password = rawToChar(sodium::data_decrypt(get(ls(pattern = paste0(getOption("thisSession"), ".+cipher"))), shared_key))
-          , secure = TRUE, log = TRUE, verbose = TRUE, sync = TRUE
-          ))
-      } else {
-        rlang::expr(remoter::batch(
-          addr   = !!.addr
-          , port = !!.port
-          , password = rawToChar(sodium::data_decrypt(get(ls(pattern = paste0(getOption("thisSession"), ".+cipher"))), shared_key))
-          , script = "exit(FALSE)"
-          ))
-      };
+      rlang::expr(remoter::server(port = !!.port, password = !!get_pass(session, shared_key), secure = TRUE, log = TRUE, verbose = TRUE, sync = TRUE))
+    } else {
+      rlang::expr(remoter::batch(addr = !!.addr, port = !!.port, password = !!get_pass(session, shared_key), script = "exit(FALSE)"))
+    }
 
-  # :: Start the remote session ----
+  # :: Start/stop the remote session ----
   if (chatty){ message("Starting remote session ...") }
   eval(.action, envir = zMQ.config)
+}
+#
+hostname2addr <- function(addr, ipver = 4){
+#' Get the IP Address from a Hostname
+#'
+#' \code{hostname2addr} pings \code{hostname} and parses the response to get the address
+#'
+#' @param addr (string) The hostname: if an IP address, the function serves as a form of address accessibility
+#' @param ipver (integer | 4) The IP protocol version to use
+#'
+#' @export
+
+  system2(command = "ping", args = c(addr,glue::glue("-n 1 -{ipver}")), stdout = TRUE) |>
+    stringi::stri_extract_first_regex("([0-9]{1,3}[.]){3}[0-9]{1,3}") |>
+    na.omit() |> unique()
 }
 #

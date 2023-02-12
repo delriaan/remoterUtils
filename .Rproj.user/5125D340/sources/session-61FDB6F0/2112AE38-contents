@@ -1,2 +1,0 @@
-library(remoterUtils); 
-server_fun(server_dir = "D:/remoter_imperialtower", sessOpts = "imperialtower")

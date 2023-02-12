@@ -2,6 +2,7 @@
 
 export(connect_remote)
 export(gen_pass)
+export(hostname2addr)
 export(make_batch_file)
 export(make_cipher)
 export(make_cipher_env)

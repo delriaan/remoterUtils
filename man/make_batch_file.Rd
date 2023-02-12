@@ -9,7 +9,7 @@ make_batch_file(
   auth_root,
   batch.file_name = "start_Rserver.bat",
   source.file_name = "Rserve.R",
-  sessOpts = make.names(tolower(Sys.getenv("COMPUTERNAME")))
+  session = make.names(tolower(Sys.getenv("COMPUTERNAME")))
 )
 }
 \arguments{
@@ -21,7 +21,7 @@ make_batch_file(
 
 \item{source.file_name}{(string) The name of the R source file to be created in \code{server_dir}}
 
-\item{sessOpts}{(string[]) The session labels expected by the spawned server}
+\item{session}{(string) The session label for the spawned server: must match the cipher object that is ultimately loaded}
 }
 \value{
 \code{source.file_name} and \code{batch.file_name} (which calls \code{source.file_name}) created in \code{server_dir}

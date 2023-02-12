@@ -28,7 +28,7 @@ connect_remote(
 
 \item{action}{(string, symbol) The function to use to connect to the remote session (e.g., \code{client}, \code{batch}, etc.)}
 
-\item{session}{(string) The name of the target session when \code{credentials} is \emph{'ENV'}}
+\item{session}{(string) The session prefix for the ciphers when \code{credentials} is \emph{'ENV'}}
 
 \item{...}{Not used}
 }

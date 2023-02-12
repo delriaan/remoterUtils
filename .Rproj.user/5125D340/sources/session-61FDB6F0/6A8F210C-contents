@@ -1,2 +1,0 @@
-library(remoterUtils); 
-server_fun(server_dir = "D:/remoter_GW2", sessOpts = "GW2")

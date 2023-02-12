@@ -1,5 +1,0 @@
-Sys.setenv(remoter_imperialtower = make_cipher_env())
-Sys.getenv("remoter_imperialtower")
-
-
-
