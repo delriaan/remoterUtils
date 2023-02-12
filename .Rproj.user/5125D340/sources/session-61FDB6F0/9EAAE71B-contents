@@ -1,0 +1,2 @@
+library(remoterUtils); 
+server_fun(auth_root = "C:/Users/Chionesu/OneDrive/Documents", server_dir = "D:/remoter_imperialtower", sessOpts = "imperialtower")

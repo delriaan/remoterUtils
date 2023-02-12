@@ -1,0 +1,27 @@
+{
+    "id": "63B8995E",
+    "path": "D:/Imperial Git Repos/remoterUtils/validation.R",
+    "project_path": "validation.R",
+    "type": "r_source",
+    "hash": "2504852893",
+    "contents": "",
+    "dirty": true,
+    "created": 1676133943177.0,
+    "source_on_save": false,
+    "relative_order": 5,
+    "properties": {
+        "source_window_id": "",
+        "Source": "Source",
+        "cursorPosition": "10,16",
+        "scrollLine": "0",
+        "docOutlineVisible": "1"
+    },
+    "folds": "4|13|9|1|\n27|20|42|0|\n",
+    "lastKnownWriteTime": 1676171461,
+    "encoding": "WINDOWS-1252",
+    "collab_server": "",
+    "source_window": "",
+    "last_content_update": 1676181698141,
+    "read_only": false,
+    "read_only_alternatives": []
+}

@@ -1,0 +1,2 @@
+@echo off
+Rscript -e "source('D:/remoter_GW2\start.R')" --args %%*
