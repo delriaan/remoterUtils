@@ -1,0 +1,28 @@
+{
+    "id": "2B6ADA75",
+    "path": "D:/Imperial Git Repos/remoterUtils/R/remoterUtils.R",
+    "project_path": "R/remoterUtils.R",
+    "type": "r_source",
+    "hash": "2486949224",
+    "contents": "",
+    "dirty": false,
+    "created": 1676235644945.0,
+    "source_on_save": false,
+    "relative_order": 2,
+    "properties": {
+        "source_window_id": "",
+        "Source": "Source",
+        "cursorPosition": "4,2",
+        "scrollLine": "0",
+        "docOutlineVisible": "1",
+        "docOutlineSize": "210"
+    },
+    "folds": "8|80|82|0|\n84|146|144|0|\n146|121|184|0|\n230|170|335|0|\n337|135|441|0|\n443|43|456|0|\n",
+    "lastKnownWriteTime": 1676235663,
+    "encoding": "WINDOWS-1252",
+    "collab_server": "",
+    "source_window": "",
+    "last_content_update": 1676235663373,
+    "read_only": false,
+    "read_only_alternatives": []
+}
