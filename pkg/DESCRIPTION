@@ -1,7 +1,7 @@
 Type: Package
 Package: remoterUtils
 Title: Utility Functions for remoter
-Version: 0.1.4
+Version: 0.2.0
 Author: Chionesu George
 Maintainer: Chionesu George <sapienti.Dei@outlook.com>
 Description: Package \code{remoterUtils} provides utility functions
@@ -11,18 +11,19 @@ Description: Package \code{remoterUtils} provides utility functions
     environment.
 License: file LICENSE
 Depends: 
-    magrittr,
     R (>= 4.1.0)
+    , magrittr
 Imports: 
-    glue,
-    jsonlite,
-    parallelly,
-    purrr (< 1.0.0),
-    remoter,
-    sodium,
-    stringi,
-    tcltk, 
-    rlang, 
-    askpass
+    book.of.utilities (>= 1.2.0)
+    , purrr (< 1.0.0)
+    , remoter
+    , glue
+    , jsonlite
+    , parallelly
+    , sodium
+    , stringi
+    , tcltk
+    , rlang
+    , askpass
 Encoding: UTF-8
 RoxygenNote: 7.2.3
