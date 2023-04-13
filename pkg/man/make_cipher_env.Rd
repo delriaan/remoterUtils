@@ -18,7 +18,7 @@ make_cipher_env(
 \item{session}{The name of the session for which the environment variable string is created}
 }
 \value{
-a JSON string that can be stored in a Windows OS environment variable formatted as "remoter_<session>"
+a JSON string that can be stored in a Windows OS environment variable formatted as "remoter_\if{html}{\out{<session>}}"
 }
 \description{
 \code{make_cipher_env}() creates a Windows OS environment variable string from the provided cipher. OS environment variables beginning with 'remoter_' and ending with the target session string are searched when calling \code{\link{connect_remote}} with \code{credentials = "ENV"}.

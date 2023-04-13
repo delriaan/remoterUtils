@@ -36,7 +36,7 @@ connect_remote(
 \code{connect_remote} is a wrapper for \code{remoter::\link[remoter]{client}} making use of predefined encrypted authentication objects
 }
 \details{
-When \code{credentials} is passed \emph{'ENV'}, a Windows environment variable named 'remoter_<cipher prefix>' must already be set.
+When \code{credentials} is passed \emph{'ENV'}, a Windows environment variable named 'remoter_\if{html}{\out{<cipher prefix>}}' must already be set.
 The content of the variable should be a JSON string created with \code{\link{make_cipher_env}}.  Expected keys are as follows:
 \itemize{
 \item{addr: string (IPV4 format)}

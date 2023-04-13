@@ -1,23 +1,23 @@
-.onLoad <- function(libname, pkgname){
-  zMQ.config <<- new.env()
-}
-
 server_fun <- function(auth_root = path.expand("~"), server_dir = "~", session = make.names(tolower(Sys.getenv("COMPUTERNAME"))), ...){
 #' Manage a \code{remoter} Session
 #'
 #' \code{server_fun} starts or stops a \code{remoter} session (see \code{\link[remoter]{remoter-package}} for documentation).
 #'
-#' @param auth_root The path to the authentication objects to read ('.Rdata' files) containing the ciphers and decryption keys.  These should be generated from \code{\link{make_cipher}}
+#' @param auth_root The path to the authentication objects to read ('.rdata' files) containing the ciphers and decryption keys.  These should be generated from \code{\link{make_cipher}}
 #' @param server_dir The path to the working directory for th spawned server
 #' @param session (string) The session prefix for the ciphers loaded from \code{auth_root}
 #' @param ... \code{\link[rlang]{dots_list}}: additional arguments passed externally
 #'
 #' @export
+  if (!"zMQ.config" %in% search()){ attach(new.env(), name = "zMQ.config") }
 
-  alt_server_dir <- shared_key <- NULL;
+  alt_server_dir <- NULL;
+
   .dot_args <- as.character(rlang::enexprs(...)) |> unlist();
+
   chatty <- "trace" %in% .dot_args;
-  get_pass <- purrr::as_mapper(~{ rawToChar(sodium::data_decrypt(bin = zMQ.config[[paste0(.x, "_cipher")]], key = .y)) });
+
+  get_pass <- function(x, y){ rawToChar(sodium::data_decrypt(bin =  as.environment("zMQ.config")[[paste0(x, "_cipher")]], key = y)) }
 
   options(action = ifelse(any(grepl("action[=]stop", .dot_args)), "stop", "start"));
 
@@ -25,17 +25,18 @@ server_fun <- function(auth_root = path.expand("~"), server_dir = "~", session =
   if (chatty){ message("Populate the server environment with authentication data") }
 
   dir(auth_root, pattern = glue::glue("{session}.+remoter_auth.[Rr]data$"), full.names = TRUE) |>
-  	purrr::walk(load, envir = zMQ.config, verbose = TRUE);
+  	purrr::walk(load, envir = as.environment("zMQ.config"), verbose = TRUE);
 
   # :: Navigate to the working directory and set the session ----
   if (chatty){ message("Navigate to the working directory and set the session") }
 
   if (any(grepl("workdir[=]", .dot_args))){
     alt_server_dir <- c(stringi::stri_extract_first_regex(.dot_args, "workdir[=].+") |>
-      na.omit() |>
+      stats::na.omit() |>
       stringi::stri_split_fixed("=", simplify = TRUE) |>
       magrittr::extract(2), "~/")[1]
   }
+
   if (!rlang::is_empty(alt_server_dir)){
     if (dir.exists(alt_server_dir)){
       setwd(alt_server_dir)
@@ -65,7 +66,7 @@ server_fun <- function(auth_root = path.expand("~"), server_dir = "~", session =
   # :: Expression-based actions ----
   if (chatty){ message("Expression-based actions") }
 
-  cipher <- get(glue::glue("{session}_cipher"), envir = zMQ.config);
+  cipher <- eval(rlang::sym(glue::glue("{session}_cipher")));
   .addr <- attr(cipher, "addr");
 
   # Set the port to the first non-empty port available on the system selected from the following:
@@ -78,11 +79,8 @@ server_fun <- function(auth_root = path.expand("~"), server_dir = "~", session =
           magrittr::extract(2)
         }
       , random = parallelly::freePort()
-      ) |> purrr::discard(~{
-        is.na(.x) |
-        rlang::is_empty(.x)
-        # STUB: need port scanner code here, 2023.02.12
-      }) |>
+      ) |>
+      purrr::discard(\(x) is.na(x) | rlang::is_empty(x)) |>
       magrittr::extract(1) |>
       unlist();
 
@@ -97,5 +95,6 @@ server_fun <- function(auth_root = path.expand("~"), server_dir = "~", session =
 
   # :: Start/stop the remote session ----
   if (chatty){ message("Starting remote session ...") }
-  eval(.action, envir = zMQ.config)
+
+  eval(.action)
 }

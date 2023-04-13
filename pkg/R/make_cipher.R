@@ -18,10 +18,11 @@ make_cipher <- function(file_prefix = make.names(tolower(Sys.getenv("COMPUTERNAM
   .file_name  <- sprintf("~/%s_remoter_auth.rdata", file_prefix);
 
   # host_ip, host_port
-  if (missing(host_ip)){ host_ip <- system2("ipconfig", "/all", stdout = TRUE) |>
+  if (missing(host_ip)){
+    host_ip <- system2("ipconfig", "/all", stdout = TRUE) |>
     purrr::keep(grepl, pattern = "10[.].+Preferred") |>
     stringi::stri_extract_first_regex("([0-9]{1,3}[.]){3}[0-9]{1,3}")
-    }
+  }
 
   if (missing(host_port)){ host_port <- parallelly::freePort() }
   domain_name <- Sys.getenv("USERDOMAIN")
@@ -72,8 +73,6 @@ make_cipher_env <- function(cipher = NULL, shared_key = NULL, session = make.nam
 #' @return a JSON string that can be stored in a Windows OS environment variable formatted as "remoter_<session>"
 #'
 #' @export
-
-  shared_key <- NULL;
 
   if (rlang::is_empty(cipher)){
     load(tcltk::tk_choose.files(multi = FALSE, caption = "Choose the cipher image to load:"), envir = environment())

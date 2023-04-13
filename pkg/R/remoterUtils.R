@@ -6,7 +6,7 @@
 #' @importFrom stats na.omit
 #' @importFrom utils writeClipboard
 #' @importFrom rlang :=
-#' @importFrom book.of.utilities gen_pass
+#' @importFrom book.of.utilities gen.pass
 #' @import magrittr
 #' @name remoterUtils
 NULL

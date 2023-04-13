@@ -1,21 +1,15 @@
 Type: Package
 Package: remoterUtils
 Title: Utility Functions for remoter
-Version: 0.2.0
+Version: 0.2.1
 Author: Chionesu George
 Maintainer: Chionesu George <sapienti.Dei@outlook.com>
-Description: Package \code{remoterUtils} provides utility functions
-    facilitating management of \code{remoter} sessions as well as
-    authentication objects (see \code{\link[remoter]{remoter-package}} for
-    \code{remoter} documentation).  Code is designed for use in a Windows
-    environment.
+Description: Package `remoterUtils` provides utility functions facilitating management of `remoter` sessions as well as authentication objects (see ??remoter for library documentation). This package is designed for use in a Windows environment.
 License: file LICENSE
-Depends: 
-    R (>= 4.1.0)
-    , magrittr
+Depends: R (>= 4.1.0), magrittr
 Imports: 
-    book.of.utilities (>= 1.2.0)
-    , purrr (< 1.0.0)
+    book.of.utilities (>= 0.1.0)
+    , purrr (>= 1.0.0)
     , remoter
     , glue
     , jsonlite
@@ -27,3 +21,4 @@ Imports:
     , askpass
 Encoding: UTF-8
 RoxygenNote: 7.2.3
+Roxygen: list(markdown = TRUE)
