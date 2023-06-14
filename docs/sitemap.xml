@@ -25,6 +25,9 @@
     <loc>/reference/index.html</loc>
   </url>
   <url>
+    <loc>/reference/make.batch_file.html</loc>
+  </url>
+  <url>
     <loc>/reference/make_batch_file.html</loc>
   </url>
   <url>
@@ -35,6 +38,9 @@
   </url>
   <url>
     <loc>/reference/remoterUtils-package.html</loc>
+  </url>
+  <url>
+    <loc>/reference/remoterUtils.html</loc>
   </url>
   <url>
     <loc>/reference/server_fun.html</loc>
