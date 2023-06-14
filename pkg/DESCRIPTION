@@ -8,7 +8,7 @@ Description: Package `remoterUtils` provides utility functions facilitating mana
 License: file LICENSE
 Depends: R (>= 4.1.0), magrittr
 Imports: 
-    book.of.utilities (>= 0.1.0)
+    book.of.utilities (>= 0.1.6)
     , purrr (>= 1.0.0)
     , remoter
     , glue
@@ -22,3 +22,6 @@ Imports:
 Encoding: UTF-8
 RoxygenNote: 7.2.3
 Roxygen: list(markdown = TRUE)
+VignetteBuilder: knitr
+URL: https://github.com/delriaan/remoterUtils/, https://delriaan.github.io/remoterUtils/, https://github.com/wrathematics/argon2, https://github.com/RBigData/remoter
+
