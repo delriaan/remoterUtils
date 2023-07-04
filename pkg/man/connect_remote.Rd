@@ -3,49 +3,11 @@
 \name{connect_remote}
 \alias{connect_remote}
 \title{A \code{remoter} Wrapper}
-\usage{
-connect_remote(
-  credentials = NULL,
-  prompt = "REMOTE_SESSION::",
-  port = NULL,
-  action = "client",
-  session = make.names(tolower(Sys.getenv("COMPUTERNAME"))),
-  ...
-)
-}
-\arguments{
-\item{credentials}{One of the following:
-\itemize{
-\item{\code{string}: The path to the R workspace image containing the cipher and key needed to connect to the remote resource}
-\item{\code{TRUE}: Choose the R workspace image interactively via \code{\link[tcltk]{tk_choose.files}}}
-\item{'ENV': See 'Details'}
-\item{\code{NULL|FALSE}: Use when no credentials are needed (connections will \emph{not} be secure)}
-}}
-
-\item{prompt}{(string) The prompt to use during the remote session}
-
-\item{port}{(integer) The port to use if not provided in the cipher (useful for specific overrides or ad-hoc sessions)}
-
-\item{action}{(string, symbol) The function to use to connect to the remote session (e.g., \code{client}, \code{batch}, etc.)}
-
-\item{session}{(string) The session prefix for the ciphers when \code{credentials} is \emph{'ENV'}}
-
-\item{...}{Not used}
-}
 \description{
-\code{connect_remote} is a wrapper for \code{remoter::\link[remoter]{client}} making use of predefined encrypted authentication objects
+\code{connect_remote} is an R6 class serving as a wrapper for \code{remoter::\link[remoter]{client}} and \code{remoter::\link[remoter]{batch}} making use of predefined encrypted authentication objects.
 }
-\details{
-When \code{credentials} is passed \emph{'ENV'}, a Windows environment variable named 'remoter_\if{html}{\out{<cipher prefix>}}' must already be set.
-The content of the variable should be a JSON string created with \code{\link{make_cipher_env}}.  Expected keys are as follows:
-\itemize{
-\item{addr: string (IPV4 format)}
-\item{port: numeric,string}
-\item{session: string}
-\item{cipher: string (hexidecimal)}
-\item{nonce: string (hexidecimal, must evaluate to length 24L raw vector)}
-\item{shared_key: string (hexidecimal)}
-}
+\note{
+\itemize{\item{Calling \code{$connect(action=client)} is blocking} \item{No defaults other than \code{addr}, \code{port}, and \code{password} are provided.}}
 }
 \section{References}{
 
@@ -58,3 +20,115 @@ At a minimum, read the following documentation:
 }
 }
 
+\section{Public fields}{
+\if{html}{\out{<div class="r6-fields">}}
+\describe{
+\item{\code{prompt}}{A string to use as the prompt when connecting interactively to a remote session (defaults to "REMOTE_SESSION")}
+}
+\if{html}{\out{</div>}}
+}
+\section{Methods}{
+\subsection{Public methods}{
+\itemize{
+\item \href{#method-connect_remote-new}{\code{connect_remote$new()}}
+\item \href{#method-connect_remote-print}{\code{connect_remote$print()}}
+\item \href{#method-connect_remote-connect}{\code{connect_remote$connect()}}
+\item \href{#method-connect_remote-clone}{\code{connect_remote$clone()}}
+}
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-connect_remote-new"></a>}}
+\if{latex}{\out{\hypertarget{method-connect_remote-new}{}}}
+\subsection{Method \code{new()}}{
+When \code{credentials} is passed \emph{'ENV'}, a Windows environment variable named 'remoter_\if{html}{\out{<cipher prefix>}}' must already be set.
+The content of the variable should be a JSON string created with \code{\link{make_cipher_env}}.  Expected keys are as follows:
+\itemize{
+\item{addr: string (IPV4 format)}
+\item{port: numeric,string}
+\item{session: string}
+\item{cipher: string (hexidecimal)}
+\item{nonce: string (hexidecimal, must evaluate to length 24L raw vector)}
+\item{shared_key: string (hexidecimal)}
+}
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{connect_remote$new(
+  credentials = NULL,
+  prompt = "REMOTE_SESSION",
+  port = NULL,
+  session = make.names(tolower(Sys.getenv("COMPUTERNAME"))),
+  ...
+)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{credentials}}{One of the following:
+\itemize{
+\item{\code{string}: The path to the R workspace image containing the cipher and key needed to connect to the remote resource}
+\item{\code{TRUE}: Choose the R workspace image interactively via \code{\link[tcltk]{tk_choose.files}}}
+\item{'ENV': See 'Details'}
+\item{\code{NULL|FALSE}: Use when no credentials are needed (connections will \emph{not} be secure)}
+}}
+
+\item{\code{prompt}}{(string) The prompt to use during the remote session}
+
+\item{\code{port}}{(integer) The port to use if not provided in the cipher (useful for specific overrides or ad-hoc sessions)}
+
+\item{\code{session}}{(string) The session prefix for the ciphers when \code{credentials} is \emph{'ENV'}}
+
+\item{\code{...}}{Not used}
+}
+\if{html}{\out{</div>}}
+}
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-connect_remote-print"></a>}}
+\if{latex}{\out{\hypertarget{method-connect_remote-print}{}}}
+\subsection{Method \code{print()}}{
+The print method
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{connect_remote$print()}\if{html}{\out{</div>}}
+}
+
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-connect_remote-connect"></a>}}
+\if{latex}{\out{\hypertarget{method-connect_remote-connect}{}}}
+\subsection{Method \code{connect()}}{
+The saved authentication objects are used on-demand to make the connection.
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{connect_remote$connect(action = "client", ...)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{action}}{(string, symbol) The \code{remoter} function to use to connect to the remote session: \code{client} (default) or \code{batch}.}
+
+\item{\code{...}}{Additional arguments to use.}
+}
+\if{html}{\out{</div>}}
+}
+\subsection{Returns}{
+The class environment invisibly
+}
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-connect_remote-clone"></a>}}
+\if{latex}{\out{\hypertarget{method-connect_remote-clone}{}}}
+\subsection{Method \code{clone()}}{
+The objects of this class are cloneable with this method.
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{connect_remote$clone(deep = FALSE)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{deep}}{Whether to make a deep clone.}
+}
+\if{html}{\out{</div>}}
+}
+}
+}
