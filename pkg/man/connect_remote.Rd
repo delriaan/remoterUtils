@@ -27,6 +27,13 @@ At a minimum, read the following documentation:
 }
 \if{html}{\out{</div>}}
 }
+\section{Active bindings}{
+\if{html}{\out{<div class="r6-active-bindings">}}
+\describe{
+\item{\code{history}}{Returns an environment object from which the history of captured connection output can be accessed}
+}
+\if{html}{\out{</div>}}
+}
 \section{Methods}{
 \subsection{Public methods}{
 \itemize{
@@ -98,13 +105,15 @@ The print method
 \subsection{Method \code{connect()}}{
 The saved authentication objects are used on-demand to make the connection.
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{connect_remote$connect(action = "client", ...)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{connect_remote$connect(action = "client", capture = FALSE, ...)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
 \item{\code{action}}{(string, symbol) The \code{remoter} function to use to connect to the remote session: \code{client} (default) or \code{batch}.}
+
+\item{\code{capture}}{(logical) Should the remote output be captured?}
 
 \item{\code{...}}{Additional arguments to use.}
 }

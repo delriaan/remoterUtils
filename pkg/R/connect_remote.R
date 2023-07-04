@@ -106,12 +106,13 @@ connect_remote <- R6::R6Class(
           stop(glue::glue("Invalid hostname: {attr(cipher, 'addr')}"))
         }
 
-        # Save authentication information ----
+        # Set objects in '$private' information ----
         private$.auth <- list(
               addr = attr(cipher, "addr")
               , port = attr(cipher, "port") |> as.integer()
               , password = rawToChar(sodium::data_decrypt(cipher, shared_key))
               )
+        private$.history <- new.env()
 
         self$prompt <- prompt;
 
@@ -132,9 +133,10 @@ connect_remote <- R6::R6Class(
       #' The saved authentication objects are used on-demand to make the connection.
       #' @note \itemize{\item{Calling \code{$connect(action=client)} is blocking} \item{No defaults other than \code{addr}, \code{port}, and \code{password} are provided.}}
       #' @param action (string, symbol) The \code{remoter} function to use to connect to the remote session: \code{client} (default) or \code{batch}.
+      #' @param capture (logical) Should the remote output be captured?
       #' @param ... Additional arguments to use.
       #' @return The class environment invisibly
-      connect = function(action = "client", ...){
+      connect = function(action = "client", capture = FALSE, ...){
         action <- rlang::enexpr(action) |> as.character()
         fun <- match.arg(action, choices = c("client", "batch")) |>
           sprintf(fmt = "remoter::%s") |>
@@ -142,13 +144,29 @@ connect_remote <- R6::R6Class(
           eval();
 
         args <- rlang::list2(!!!private$.auth, ...)
+
         if (action == "client"){ args$prompt <- self$prompt }
 
-        do.call(what = fun, args = args)
+        if (capture){
+          x <- format(Sys.time(), glue::glue("{action}_%Y.%m.%d.%H%M%S"))
+          assign(x, capture.output(do.call(what = fun, args = args), split = capture), envir = private$.history)
+        } else {
+          do.call(what = fun, args = args)
+        }
         invisible(self)
       },
       #' @field prompt A string to use as the prompt when connecting interactively to a remote session (defaults to "REMOTE_SESSION")
       prompt = NULL
     )}
-  , private = list(.auth = NULL)
+  , active = list(
+      #' @field history Returns an environment object from which the history of captured connection output can be accessed
+      history = function(){
+        if (rlang::is_empty(ls(private$.history))){
+          invisible(cat("No entries (try calling method '$connect(action, capture=TRUE)' from the class object.)\n"))
+        } else {
+          invisible(private$.history)
+        }
+      }
+    )
+  , private = list(.auth = NULL, .history = NULL)
   )
