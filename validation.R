@@ -53,7 +53,12 @@ remoterUtils::make_batch_file(
 X <- remoterUtils::connect_remote$new(credentials = TRUE, prompt = "IMPERIALTOWER", session = "imperialtower")
 print(X)
 X$prompt
-X$connect()
+X$history
+X$connect(capture = TRUE)
+search()
+exit()
+X$connect(action = batch, script="search()", capture = TRUE)
+X$history %$% mget(ls())
 # connect_remote(credentials = 'ENV', prompt = "GW2::", session = "GW2")
 #
 # server_fun ----

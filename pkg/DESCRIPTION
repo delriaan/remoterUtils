@@ -1,7 +1,7 @@
 Type: Package
 Package: remoterUtils
 Title: Utility Functions for remoter
-Version: 0.2.1.3
+Version: 0.2.1.5
 Author: Chionesu George
 Maintainer: Chionesu George <sapienti.Dei@outlook.com>
 Description: Package `remoterUtils` provides utility functions facilitating management of `remoter` sessions as well as authentication objects (see ??remoter for library documentation). This package is designed for use in a Windows environment.
