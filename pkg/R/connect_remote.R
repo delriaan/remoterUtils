@@ -141,7 +141,7 @@ connect_remote <- R6::R6Class(
           rlang::parse_expr() |>
           eval();
 
-        args <- private$.auth
+        args <- rlang::list2(!!!private$.auth, ...)
         if (action == "client"){ args$prompt <- self$prompt }
 
         do.call(what = fun, args = args)
