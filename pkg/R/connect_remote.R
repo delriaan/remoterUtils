@@ -131,13 +131,14 @@ connect_remote <- R6::R6Class(
       },
       #' @description
       #' The saved authentication objects are used on-demand to make the connection.
-      #' @note \itemize{\item{Calling \code{$connect(action=client)} is blocking} \item{No defaults other than \code{addr}, \code{port}, and \code{password} are provided.}}
+      #' @note \itemize{\item{Calling \code{$connect(action=client)} is blocking when capture is \code{TRUE}.} \item{No defaults other than \code{addr}, \code{port}, and \code{password} are provided.}}
       #' @param action (string, symbol) The \code{remoter} function to use to connect to the remote session: \code{client} (default) or \code{batch}.
       #' @param capture (logical) Should the remote output be captured?
       #' @param ... Additional arguments to use.
       #' @return The class environment invisibly
       connect = function(action = "client", capture = FALSE, ...){
-        action <- rlang::enexpr(action) |> as.character()
+        action <- rlang::enexpr(action) |> as.character();
+
         fun <- match.arg(action, choices = c("client", "batch")) |>
           sprintf(fmt = "remoter::%s") |>
           rlang::parse_expr() |>
@@ -147,11 +148,31 @@ connect_remote <- R6::R6Class(
 
         if (action == "client"){ args$prompt <- self$prompt }
 
+        assign("result"
+               , capture.output(do.call(what = fun, args = args), split = capture) |>
+                 paste(collapse = "\n")
+               , envir = self
+               );
+
         if (capture){
-          x <- format(Sys.time(), glue::glue("{action}_%Y.%m.%d.%H%M%S"))
-          assign(x, capture.output(do.call(what = fun, args = args), split = capture), envir = private$.history)
+          x <- format(Sys.time(), glue::glue("hist_%Y.%m.%d.%H%M%S_{action}"));
+          assign(
+            x
+            , list(code = ls(args, pattern = "file|script")
+                   , result = self$result)
+            , envir = private$.history
+            );
         } else {
-          do.call(what = fun, args = args)
+          # Send a background process to class object `result`:
+          assign(
+            "result"
+            , callr::r_bg(
+                func = function(...) do.call(...)
+                , args = list(what = fun, args = args)
+                , stdout = file(glue::glue("{x}.out"))
+                )
+            , envir = self
+            );
         }
         invisible(self)
       },
