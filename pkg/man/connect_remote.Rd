@@ -4,7 +4,7 @@
 \alias{connect_remote}
 \title{A \code{remoter} Wrapper}
 \description{
-\code{connect_remote} is an R6 class serving as a wrapper for \code{remoter::\link[remoter]{client}} and \code{remoter::\link[remoter]{batch}} making use of predefined encrypted authentication objects.
+\code{connect_remote} is an R6 class serving as a wrapper for \code{remoter::\link[remoter]{client}} and \code{remoter::\link[remoter]{batch}} making use of predefined encrypted authentication objects. Functionality is designed to work on Windows operating systems.
 }
 \note{
 \itemize{\item{Calling \code{$connect(action=client)} is blocking} \item{No defaults other than \code{addr}, \code{port}, and \code{password} are provided.}}

@@ -23,3 +23,6 @@ server_fun(
 \description{
 \code{server_fun} starts or stops a \code{remoter} session (see \code{\link[remoter]{remoter-package}} for documentation).
 }
+\note{
+Designed for Windows OS
+}

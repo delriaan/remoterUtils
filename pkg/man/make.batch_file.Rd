@@ -29,3 +29,6 @@ make.batch_file(
 \description{
 \code{make.batch_file} creates the Windows OS batch file and associated R script to launch the \code{remoter} server.  Existing contents in \code{server_dir} are deleted before repopulating.
 }
+\note{
+Designed for Windows OS
+}

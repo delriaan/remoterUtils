@@ -4,7 +4,7 @@ make_cipher <- function(file_prefix = make.names(tolower(Sys.getenv("COMPUTERNAM
 #' \code{remoter_auth} creates an encrypted object used to securely start and connect to a \code{remoter} session (see \code{\link[remoter]{remoter-package}} for documentation)
 #'
 #' @param file_prefix (string) The prefix for the output file in the user directory having suffix "_remoter_auth.rdata"
-#' @param host_ip (string) The IPV4 address for the server (hostnames are not allowed)
+#' @param host_ip (string) The IPV4 address for the server (hostnames are not allowed).
 #' @param host_port (string,integer) The port to use for the server: should be a static, reserved port
 #' @param password (string) The password for the server
 #' @param shared_key (string) The key to encrypt and decrypt the generated cipher
@@ -16,17 +16,6 @@ make_cipher <- function(file_prefix = make.names(tolower(Sys.getenv("COMPUTERNAM
 
   .cipher_name <- paste0(file_prefix, "_cipher");
   .file_name  <- sprintf("~/%s_remoter_auth.rdata", file_prefix);
-
-  # host_ip, host_port
-  if (missing(host_ip)){
-    host_ip <- system2("ipconfig", "/all", stdout = TRUE) |>
-    purrr::keep(grepl, pattern = "10[.].+Preferred") |>
-    stringi::stri_extract_first_regex("([0-9]{1,3}[.]){3}[0-9]{1,3}")
-  }
-
-  if (missing(host_port)){ host_port <- parallelly::freePort() }
-  domain_name <- Sys.getenv("USERDOMAIN")
-  has_domain <- !identical(domain_name, "")
 
   # password ::
   if (missing(password)){

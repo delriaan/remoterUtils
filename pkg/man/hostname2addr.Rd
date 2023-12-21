@@ -12,5 +12,8 @@ hostname2addr(addr, ipver = 4)
 \item{ipver}{(integer | 4) The IP protocol version to use}
 }
 \description{
-\code{hostname2addr} pings \code{hostname} and parses the response to get the address
+\code{hostname2addr} pings \code{hostname} and parses the response to get the address.
+}
+\note{
+Designed for Windows OS
 }

@@ -4,9 +4,11 @@ server_fun <- function(auth_root = path.expand("~"), server_dir = "~", session =
 #' \code{server_fun} starts or stops a \code{remoter} session (see \code{\link[remoter]{remoter-package}} for documentation).
 #'
 #' @param auth_root The path to the authentication objects to read ('.rdata' files) containing the ciphers and decryption keys.  These should be generated from \code{\link{make_cipher}}
-#' @param server_dir The path to the working directory for th spawned server
+#' @param server_dir The path to the working directory for the spawned server
 #' @param session (string) The session prefix for the ciphers loaded from \code{auth_root}
 #' @param ... \code{\link[rlang]{dots_list}}: additional arguments passed externally
+#'
+#' @note Designed for Windows OS
 #'
 #' @export
   if (!"zMQ.config" %in% search()){ attach(new.env(), name = "zMQ.config") }
@@ -86,9 +88,10 @@ server_fun <- function(auth_root = path.expand("~"), server_dir = "~", session =
 
   message(sprintf("Using %s port%s", names(.port), ifelse(names(.port) == "random", sprintf(" (%s)", .port), "")));
   .port <- unname(.port);
+  .logfile <- glue::glue("{getwd()}/.{session}_remote_session.log")
 
   .action <- if (getOption("action") == "start"){
-      rlang::expr(remoter::server(port = !!.port, password = !!get_pass(session, shared_key), secure = TRUE, log = TRUE, verbose = TRUE, sync = TRUE))
+      rlang::expr(remoter::server(port = !!.port, password = !!get_pass(session, shared_key), secure = TRUE, log = .logfile, verbose = TRUE, sync = TRUE))
     } else {
       rlang::expr(remoter::batch(addr = !!.addr, port = !!.port, password = !!get_pass(session, shared_key), script = "exit(FALSE)"))
     }
