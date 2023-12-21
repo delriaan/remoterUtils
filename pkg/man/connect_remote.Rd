@@ -31,6 +31,12 @@ At a minimum, read the following documentation:
 \if{html}{\out{<div class="r6-active-bindings">}}
 \describe{
 \item{\code{history}}{Returns an environment object from which the history of captured connection output can be accessed}
+
+\item{\code{addr}}{The IPv4 address to override existing value}
+
+\item{\code{port}}{The port to override existing value}
+
+\item{\code{password}}{The password to override the existing value}
 }
 \if{html}{\out{</div>}}
 }

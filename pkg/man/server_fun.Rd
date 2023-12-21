@@ -14,7 +14,7 @@ server_fun(
 \arguments{
 \item{auth_root}{The path to the authentication objects to read ('.rdata' files) containing the ciphers and decryption keys.  These should be generated from \code{\link{make_cipher}}}
 
-\item{server_dir}{The path to the working directory for th spawned server}
+\item{server_dir}{The path to the working directory for the spawned server}
 
 \item{session}{(string) The session prefix for the ciphers loaded from \code{auth_root}}
 

@@ -111,7 +111,7 @@ connect_remote <- R6::R6Class(
               addr = attr(cipher, "addr")
               , port = attr(cipher, "port") |> as.integer()
               , password = rawToChar(sodium::data_decrypt(cipher, shared_key))
-              )
+              );
         private$.history <- new.env()
 
         self$prompt <- prompt;
@@ -166,7 +166,13 @@ connect_remote <- R6::R6Class(
         } else {
           invisible(private$.history)
         }
-      }
+      },
+      #' @field addr The IPv4 address to override existing value
+      addr = function(value){ private$.auth$addr <- value },
+      #' @field port The port to override existing value
+      port = function(value){ private$.auth$port <- value },
+      #' @field password The password to override the existing value
+      password = function(value){ private$.auth$password <- value }
     )
   , private = list(.auth = NULL, .history = NULL)
   )
