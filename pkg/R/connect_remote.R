@@ -1,6 +1,6 @@
 #' A \code{remoter} Wrapper
 #' @description
-#' \code{connect_remote} is an R6 class serving as a wrapper for \code{remoter::\link[remoter]{client}} and \code{remoter::\link[remoter]{batch}} making use of predefined encrypted authentication objects.
+#' \code{connect_remote} is an R6 class serving as a wrapper for \code{remoter::\link[remoter]{client}} and \code{remoter::\link[remoter]{batch}} making use of predefined encrypted authentication objects. Functionality is designed to work on Windows operating systems.
 #' @export
 connect_remote <- R6::R6Class(
   classname = "connect_remote"

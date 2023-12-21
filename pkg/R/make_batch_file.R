@@ -10,6 +10,7 @@ make.batch_file <- function(server_dir, auth_root, batch.file_name = "start_Rser
 #' @param session (string) The session label for the spawned server: must match the cipher object that is ultimately loaded
 #'
 #'
+#' @note Designed for Windows OS
 #'
 #' @return \code{source.file_name} and \code{batch.file_name} (which calls \code{source.file_name}) created in \code{server_dir}
 #'

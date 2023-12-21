@@ -16,7 +16,7 @@ make_cipher(
 \arguments{
 \item{file_prefix}{(string) The prefix for the output file in the user directory having suffix "_remoter_auth.rdata"}
 
-\item{host_ip}{(string) The IPV4 address for the server (hostnames are not allowed)}
+\item{host_ip}{(string) The IPV4 address for the server (hostnames are not allowed).}
 
 \item{host_port}{(string,integer) The port to use for the server: should be a static, reserved port}
 
