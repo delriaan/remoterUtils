@@ -10,8 +10,12 @@ server_fun <- function(auth_root = path.expand("~"), server_dir = "~", session =
 #'
 #' @note Designed for Windows OS
 #'
+#' @importFrom pbdZMQ ls
+#'
 #' @export
-  if (!"zMQ.config" %in% search()){ attach(new.env(), name = "zMQ.config") }
+  if (!"zMQ.config" %in% search()){
+    attach(new.env(), name = "zMQ.config")
+  }
 
   alt_server_dir <- NULL;
 
@@ -19,10 +23,13 @@ server_fun <- function(auth_root = path.expand("~"), server_dir = "~", session =
 
   chatty <- "trace" %in% .dot_args;
 
-  get_pass <- function(x, y){ rawToChar(sodium::data_decrypt(bin =  as.environment("zMQ.config")[[paste0(x, "_cipher")]], key = y)) }
+  get_pass <- function(x, y){
+    rawToChar(sodium::data_decrypt(bin = as.environment("zMQ.config")[[paste0(x, "_cipher")]], key = y))
+  }
 
   options(action = ifelse(any(grepl("action[=]stop", .dot_args)), "stop", "start"));
 
+  #
   # :: Populate the server environment with authentication data ----
   if (chatty){ message("Populate the server environment with authentication data") }
 
@@ -58,7 +65,7 @@ server_fun <- function(auth_root = path.expand("~"), server_dir = "~", session =
       message(glue::glue("Working directory {alt_server_dir} does not exist: using '~/' ..."));
       setwd("~/");
     }
-  } else{
+  } else {
     message("Working directory set to '~/' ...");
     setwd("~/");
   }
@@ -87,17 +94,22 @@ server_fun <- function(auth_root = path.expand("~"), server_dir = "~", session =
       unlist();
 
   message(sprintf("Using %s port%s", names(.port), ifelse(names(.port) == "random", sprintf(" (%s)", .port), "")));
+
   .port <- unname(.port);
+
   .logfile <- glue::glue("{getwd()}/.{session}_remote_session.log")
 
   .action <- if (getOption("action") == "start"){
-      rlang::expr(remoter::server(port = !!.port, password = !!get_pass(session, shared_key), secure = TRUE, log = .logfile, verbose = TRUE, sync = TRUE))
+      rlang::expr(remoter::server(port = !!.port, password = !!get_pass(session, shared_key), log = .logfile, secure = TRUE, showmsg = TRUE, verbose = TRUE, sync = TRUE))
     } else {
       rlang::expr(remoter::batch(addr = !!.addr, port = !!.port, password = !!get_pass(session, shared_key), script = "exit(FALSE)"))
+      unlink(glue::glue("{getwd()}/.Rhistory"));
     }
 
   # :: Start/stop the remote session ----
   if (chatty){ message("Starting remote session ...") }
+
+  setwd(tempdir());
 
   eval(.action)
 }

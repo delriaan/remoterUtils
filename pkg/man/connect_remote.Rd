@@ -7,7 +7,7 @@
 \code{connect_remote} is an R6 class serving as a wrapper for \code{remoter::\link[remoter]{client}} and \code{remoter::\link[remoter]{batch}} making use of predefined encrypted authentication objects. Functionality is designed to work on Windows operating systems.
 }
 \note{
-\itemize{\item{Calling \code{$connect(action=client)} is blocking} \item{No defaults other than \code{addr}, \code{port}, and \code{password} are provided.}}
+\itemize{\item{Calling \code{$connect(action=client)} is blocking when capture is \code{TRUE}.} \item{No defaults other than \code{addr}, \code{port}, and \code{password} are provided.}}
 }
 \section{References}{
 
@@ -32,11 +32,11 @@ At a minimum, read the following documentation:
 \describe{
 \item{\code{history}}{Returns an environment object from which the history of captured connection output can be accessed}
 
-\item{\code{addr}}{The IPv4 address to override existing value}
+\item{\code{addr}}{The existing value or the new value.}
 
-\item{\code{port}}{The port to override existing value}
+\item{\code{port}}{The existing value or the new value.}
 
-\item{\code{password}}{The password to override the existing value}
+\item{\code{password}}{The existing value or the new value.}
 }
 \if{html}{\out{</div>}}
 }
@@ -126,7 +126,7 @@ The saved authentication objects are used on-demand to make the connection.
 \if{html}{\out{</div>}}
 }
 \subsection{Returns}{
-The class environment invisibly
+The class environment invisibly: the result is written to class object \code{$result} and the history is written to class object \code{$history} when \code{capture=TRUE}.
 }
 }
 \if{html}{\out{<hr>}}
