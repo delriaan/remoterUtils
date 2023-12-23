@@ -1,7 +1,7 @@
 Type: Package
 Package: remoterUtils
 Title: Utility Functions for remoter
-Version: 0.2.1.6002
+Version: 0.2.1.6005
 Author: Chionesu George
 Maintainer: Chionesu George <sapienti.Dei@outlook.com>
 Description: Package `remoterUtils` provides utility functions facilitating management of `remoter` sessions as well as authentication objects (see ??remoter for library documentation). This package is designed for use in a Windows environment.
@@ -9,8 +9,9 @@ License: file LICENSE
 Depends: R (>= 4.1.0), magrittr
 Imports: 
     book.of.utilities (>= 0.1.6)
-    , purrr (>= 1.0.0)
     , remoter (>= 0.5-0)
+    , pbdZMQ (>= 0.3-10)
+    , purrr (>= 1.0.0)
     , glue
     , jsonlite
     , parallelly

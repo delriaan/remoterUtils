@@ -131,28 +131,39 @@ connect_remote <- R6::R6Class(
       },
       #' @description
       #' The saved authentication objects are used on-demand to make the connection.
-      #' @note \itemize{\item{Calling \code{$connect(action=client)} is blocking} \item{No defaults other than \code{addr}, \code{port}, and \code{password} are provided.}}
+      #' @note \itemize{\item{Calling \code{$connect(action=client)} is blocking when capture is \code{TRUE}.} \item{No defaults other than \code{addr}, \code{port}, and \code{password} are provided.}}
       #' @param action (string, symbol) The \code{remoter} function to use to connect to the remote session: \code{client} (default) or \code{batch}.
       #' @param capture (logical) Should the remote output be captured?
       #' @param ... Additional arguments to use.
-      #' @return The class environment invisibly
+      #' @return The class environment invisibly: the result is written to class object \code{$result} and the history is written to class object \code{$history} when \code{capture=TRUE}.
       connect = function(action = "client", capture = FALSE, ...){
-        action <- rlang::enexpr(action) |> as.character()
+        action <- rlang::enexpr(action) |> as.character();
+
+        # Which function to use?
         fun <- match.arg(action, choices = c("client", "batch")) |>
           sprintf(fmt = "remoter::%s") |>
           rlang::parse_expr() |>
           eval();
 
         args <- rlang::list2(!!!private$.auth, ...)
-
         if (action == "client"){ args$prompt <- self$prompt }
 
+        # Check whether or not to capture the output:
         if (capture){
-          x <- format(Sys.time(), glue::glue("{action}_%Y.%m.%d.%H%M%S"))
-          assign(x, capture.output(do.call(what = fun, args = args), split = capture), envir = private$.history)
+          assign(
+            format(Sys.time(), glue::glue("hist_%Y.%m.%d.%H%M%S_{action}"))
+            , list(code = ls(args, pattern = "file|script")
+                   , result = capture.output(do.call(what = fun, args = args), split = capture) |> paste(collapse = "\n")
+                   )
+            , envir = private$.history
+            );
+
+          # Show the result before returning invisibly:
+          cat(self$result, sep = "\n");
         } else {
-          do.call(what = fun, args = args)
+          do.call(what = fun, args = args);
         }
+
         invisible(self)
       },
       #' @field prompt A string to use as the prompt when connecting interactively to a remote session (defaults to "REMOTE_SESSION")
@@ -167,12 +178,30 @@ connect_remote <- R6::R6Class(
           invisible(private$.history)
         }
       },
-      #' @field addr The IPv4 address to override existing value
-      addr = function(value){ private$.auth$addr <- value },
-      #' @field port The port to override existing value
-      port = function(value){ private$.auth$port <- value },
-      #' @field password The password to override the existing value
-      password = function(value){ private$.auth$password <- value }
+      #' @field addr The existing value or the new value.
+      addr = function(value){
+        if (missing(value)){
+          return(invisible(private$.auth$addr))
+        } else {
+          return(private$.auth$addr) <- value
+        }
+      },
+      #' @field port The existing value or the new value.
+      port = function(value){
+        if (missing(value)){
+          return(invisible(private$.auth$port))
+        } else {
+          return(private$.auth$port) <- value
+        }
+      },
+      #' @field password The existing value or the new value.
+      password = function(value){
+        if (missing(value)){
+          return(invisible(private$.auth$password))
+        } else {
+          return(private$.auth$password) <- value
+        }
+      }
     )
   , private = list(.auth = NULL, .history = NULL)
   )
