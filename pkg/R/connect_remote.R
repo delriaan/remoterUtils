@@ -42,28 +42,58 @@ connect_remote <- R6::R6Class(
         if (!stringi::stri_detect_regex(prompt, "[:]{2}$")){ prompt <- paste0(prompt, "::") }
 
         # Which credential type? ----
-        .cred_type <- c(`TRUE` = identical(TRUE, credentials)
-                      , OS_ENV	= identical("ENV", credentials)
-                      , OBJ 		= class(credentials) %in% c("list", "environment")
-                      , default = rlang::is_empty(credentials) || TRUE
-                      ) |> which() |> min();
+        .cred_type <- c(
+          `TRUE` = identical(TRUE, credentials)
+          , OS_ENV	= identical("ENV", credentials)
+          , OBJ 		= class(credentials) %in% c("list", "environment")
+          , default = rlang::is_empty(credentials) || TRUE
+          ) |>
+          which() |>
+          min();
 
         # Set the local environment ----
         eval(rlang::exprs(
           `TRUE` = {
-              tcltk::tk_choose.files(multi = FALSE, caption = "Select the workspace image file containing the cipher and key:") |> load();
+              .root <- svDialogs::dlg_dir(
+                default = getwd()
+                , title = "Choose the directory holding the cipher and key files (created with `make_cipher()`):"
+                );
+
+              # browser();
+
+              svDialogs::dlg_list(
+                choices = dir(.root$res
+                              , pattern = "rdata"
+                              , ignore.case = TRUE
+                              , full.names = TRUE
+                              , all.files = TRUE
+                              )
+                , title = "Select the workspace image file containing the cipher and key:"
+                )$res |>
+                load();
 
               this <- ls(pattern = "cipher", all.names = TRUE);
 
-              if (length(this) > 1){ this <- tcltk::tk_select.list(choices = this, preselect = this[1], title = "Choose a cipher object to use: ")}
+              if (length(this) > 1){
+                this <- svDialogs::dlg_list(
+                  choices = this
+                  , preselect = this[1]
+                  , title = "Choose a cipher object to use: "
+                  )
+              }
               cipher <- rlang::sym(this) |> eval();
               this <- ls(pattern = "key", all.names = TRUE);
 
-              if (length(this) > 1) { this <- tcltk::tk_select.list(choices = this, preselect = this[1], title = "Choose a decryption key object to use: ")}
+              if (length(this) > 1) {
+                this <- svDialogs::dlg_list(choices = this, preselect = this[1], title = "Choose a decryption key object to use: ")
+              }
               shared_key <- get(this);
           }
           , OS_ENV = {
-              os_env_var <- (\(x){ x[grepl("remoter", names(x))] |> purrr::map(jsonlite::fromJSON)})(Sys.getenv());
+              os_env_var <- (\(x){
+                x[grepl("remoter", names(x))] |>
+                  purrr::map(jsonlite::fromJSON)
+                })(Sys.getenv());
 
               attr(os_env_var, "names") <- stringi::stri_replace_first_fixed(
                   str = names(os_env_var)
@@ -80,31 +110,33 @@ connect_remote <- R6::R6Class(
               attr(cipher, "port") <- os_env_var[[session]]$port;
             }
           , OBJ = {
-              this <- ls(pattern = "cipher", all.names = TRUE, envir = as.environment(credentials))
-              if (length(this) > 1) {
-                this <- tcltk::tk_select.list(choices = this, preselect = this[1], title = "Choose a cipher object to use: ")
-              }
-              cipher <- (as.environment(credentials))[[this]]
+              this <- ls(pattern = "cipher", all.names = TRUE, envir = as.environment(credentials));
 
-              this <- ls(pattern = "key", all.names = TRUE, envir = as.environment(credentials))
               if (length(this) > 1) {
-                this <- tcltk::tk_select.list(
+                this <- svDialogs::dlg_list(
                   choices = this
                   , preselect = this[1]
-                  , title = "Choose a decryption key object to use: ")
+                  , title = "Choose a cipher object to use: "
+                  )
+              }
+              cipher <- (as.environment(credentials))[[this]];
+
+              this <- ls(pattern = "key", all.names = TRUE, envir = as.environment(credentials));
+
+              if (length(this) > 1) {
+                this <- svDialogs::dlg_list(
+                  choices = this
+                  , preselect = this[1]
+                  , title = "Choose a decryption key object to use: "
+                  )
                 }
               shared_key <- (as.environment(credentials))[[this]]
             }
           , default = {
-              message("No valid values for argument 'credentials': exiting ...")
-              return()
+              message("No valid values for argument 'credentials': exiting ...");
+              return();
             }
           )[[.cred_type]]);
-
-        # Validate the address ----
-        if (rlang::is_empty(hostname2addr(addr = attr(cipher, "addr")))){
-          stop(glue::glue("Invalid hostname: {attr(cipher, 'addr')}"))
-        }
 
         # Set objects in '$private' information ----
         private$.auth <- list(
@@ -112,6 +144,14 @@ connect_remote <- R6::R6Class(
               , port = attr(cipher, "port") |> as.integer()
               , password = rawToChar(sodium::data_decrypt(cipher, shared_key))
               );
+
+        # Validate the address ----
+        if (rlang::is_empty(hostname2addr(addr = attr(cipher, "addr")))){
+          warning(glue::glue("Invalid hostname: {attr(cipher, 'addr')}\nManually set the address using <connect_remote_object>$addr <- \"<address>\""));
+
+          private$.auth$addr <- NULL;
+        }
+
         private$.history <- new.env()
 
         self$prompt <- prompt;
@@ -124,7 +164,11 @@ connect_remote <- R6::R6Class(
       print = function(){
         cat(
           glue::glue("connect_remote <{packageVersion('remoterUtils')}>")
-          , glue::glue("{private$.auth$addr}:{private$.auth$port}")
+          , if (rlang::is_empty(private$.auth$addr)){
+              "Address: <not set>"
+            } else {
+              glue::glue("Address: {private$.auth$addr}:{private$.auth$port}")
+            }
           , glue::glue("Secured: {!rlang::is_empty(private$.auth$password)}")
           , sep = "\n"
           )
@@ -135,7 +179,7 @@ connect_remote <- R6::R6Class(
       #' @param action (string, symbol) The \code{remoter} function to use to connect to the remote session: \code{client} (default) or \code{batch}.
       #' @param capture (logical) Should the remote output be captured?
       #' @param ... Additional arguments to use.
-      #' @return The class environment invisibly: the result is written to class object \code{$result} and the history is written to class object \code{$history} when \code{capture=TRUE}.
+      #' @return The class environment invisibly: the history is written to class object \code{$history} when \code{capture=TRUE}.
       connect = function(action = "client", capture = FALSE, ...){
         action <- rlang::enexpr(action) |> as.character();
 
@@ -145,21 +189,20 @@ connect_remote <- R6::R6Class(
           rlang::parse_expr() |>
           eval();
 
-        args <- rlang::list2(!!!private$.auth, ...)
+        args <- rlang::list2(!!!private$.auth, ...);
+
         if (action == "client"){ args$prompt <- self$prompt }
 
         # Check whether or not to capture the output:
         if (capture){
-          assign(
-            format(Sys.time(), glue::glue("hist_%Y.%m.%d.%H%M%S_{action}"))
-            , list(code = ls(args, pattern = "file|script")
-                   , result = capture.output(do.call(what = fun, args = args), split = capture) |> paste(collapse = "\n")
-                   )
-            , envir = private$.history
-            );
+          obj_name <- format(Sys.time(), glue::glue("hist_%Y.%m.%d.%H%M%S_{action}"));
 
-          # Show the result before returning invisibly:
-          cat(self$result, sep = "\n");
+          code <- grep(pattern = "file|script", names(args), value = TRUE);
+
+          result <- capture.output(do.call(what = fun, args = args), split = capture) |>
+            paste(collapse = "\n");
+
+          assign(x = obj_name, mget(c("code", "result")), envir = private$.history);
         } else {
           do.call(what = fun, args = args);
         }
@@ -169,11 +212,12 @@ connect_remote <- R6::R6Class(
       #' @field prompt A string to use as the prompt when connecting interactively to a remote session (defaults to "REMOTE_SESSION")
       prompt = NULL
     )}
-  , active = list(
+  , active = { list(
       #' @field history Returns an environment object from which the history of captured connection output can be accessed
       history = function(){
-        if (rlang::is_empty(ls(private$.history))){
-          invisible(cat("No entries (try calling method '$connect(action, capture=TRUE)' from the class object.)\n"))
+        if (private$.history |> ls() |> rlang::is_empty()){
+          message("No entries in history (try calling method '$connect(action, capture=TRUE)' from the class object.)")
+          invisible()
         } else {
           invisible(private$.history)
         }
@@ -181,27 +225,28 @@ connect_remote <- R6::R6Class(
       #' @field addr The existing value or the new value.
       addr = function(value){
         if (missing(value)){
-          return(invisible(private$.auth$addr))
+          invisible(private$.auth$addr)
         } else {
-          return(private$.auth$addr) <- value
+          private$.auth$addr <- value
         }
       },
       #' @field port The existing value or the new value.
       port = function(value){
         if (missing(value)){
-          return(invisible(private$.auth$port))
+          invisible(private$.auth$port)
         } else {
-          return(private$.auth$port) <- value
+          private$.auth$port <- value
         }
       },
       #' @field password The existing value or the new value.
       password = function(value){
         if (missing(value)){
-          return(invisible(private$.auth$password))
+          invisible(private$.auth$password)
         } else {
-          return(private$.auth$password) <- value
+          private$.auth$password <- value
         }
       }
-    )
+      )
+  }
   , private = list(.auth = NULL, .history = NULL)
   )

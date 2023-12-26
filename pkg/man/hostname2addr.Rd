@@ -9,11 +9,14 @@ hostname2addr(addr, ipver = 4)
 \arguments{
 \item{addr}{(string) The hostname: if an IP address, the function serves as a form of address accessibility}
 
-\item{ipver}{(integer | 4) The IP protocol version to use}
+\item{ipver}{(integer | 4) The IP protocol version to use (only version 4 is supported by \code{remoter})}
 }
 \description{
 \code{hostname2addr} pings \code{hostname} and parses the response to get the address.
 }
 \note{
 Designed for Windows OS
+}
+\references{
+\href{https://en.wikipedia.org/wiki/IPv6#Address_representation}{IPv6 Addressing (Wikipedia)}
 }

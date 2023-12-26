@@ -126,7 +126,7 @@ The saved authentication objects are used on-demand to make the connection.
 \if{html}{\out{</div>}}
 }
 \subsection{Returns}{
-The class environment invisibly: the result is written to class object \code{$result} and the history is written to class object \code{$history} when \code{capture=TRUE}.
+The class environment invisibly: the history is written to class object \code{$history} when \code{capture=TRUE}.
 }
 }
 \if{html}{\out{<hr>}}
