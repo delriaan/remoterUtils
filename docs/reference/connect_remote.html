@@ -17,7 +17,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">remoterUtils</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.2.1.6002</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.2.1.6012</span>
       </span>
     </div>
 
@@ -79,15 +79,15 @@
 
 
 <dt><code>addr</code></dt>
-<dd><p>The IPv4 address to override existing value</p></dd>
+<dd><p>The existing value or the new value.</p></dd>
 
 
 <dt><code>port</code></dt>
-<dd><p>The port to override existing value</p></dd>
+<dd><p>The existing value or the new value.</p></dd>
 
 
 <dt><code>password</code></dt>
-<dd><p>The password to override the existing value</p></dd>
+<dd><p>The existing value or the new value.</p></dd>
 
 
 </dl><p></p></div>
@@ -126,7 +126,7 @@ The content of the variable should be a JSON string created with <code><a href="
 <h4 id="arguments">Arguments<a class="anchor" aria-label="anchor" href="#arguments"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>credentials</code></dt>
 <dd><p>One of the following:</p><ul><li><p><code>string</code>: The path to the R workspace image containing the cipher and key needed to connect to the remote resource</p></li>
-<li><p><code>TRUE</code>: Choose the R workspace image interactively via <code><a href="https://rdrr.io/r/tcltk/tk_choose.files.html" class="external-link">tk_choose.files</a></code></p></li>
+<li><p><code>TRUE</code>: Choose the R workspace image interactively via <code><a href="https://www.sciviews.org/svDialogs/reference/dlg_dir.html" class="external-link">dlg_dir</a></code> and <code><a href="https://www.sciviews.org/svDialogs/reference/dlg_list.html" class="external-link">dlg_list</a></code></p></li>
 <li><p>'ENV': See 'Details'</p></li>
 <li><p><code>NULL|FALSE</code>: Use when no credentials are needed (connections will <em>not</em> be secure)</p></li>
 </ul></dd>
@@ -184,7 +184,7 @@ The content of the variable should be a JSON string created with <code><a href="
 </div>
 <div class="section">
 <h4 id="returns">Returns<a class="anchor" aria-label="anchor" href="#returns"></a></h4>
-<p>The class environment invisibly</p>
+<p>The class environment invisibly: the history is written to class object <code>$history</code> when <code>capture=TRUE</code>.</p>
 </div>
 
 </div><p></p><hr><a id="method-connect_remote-clone"></a><div class="section">
