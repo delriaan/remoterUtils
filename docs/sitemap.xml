@@ -43,6 +43,12 @@
     <loc>/reference/remoterUtils.html</loc>
   </url>
   <url>
+    <loc>/reference/search.html</loc>
+  </url>
+  <url>
+    <loc>/reference/searchpaths.html</loc>
+  </url>
+  <url>
     <loc>/reference/server_fun.html</loc>
   </url>
 </urlset>

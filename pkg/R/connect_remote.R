@@ -20,7 +20,7 @@ connect_remote <- R6::R6Class(
       #' @param credentials One of the following:
       #' \itemize{
       #' \item{\code{string}: The path to the R workspace image containing the cipher and key needed to connect to the remote resource}
-      #' \item{\code{TRUE}: Choose the R workspace image interactively via \code{\link[tcltk]{tk_choose.files}}}
+      #' \item{\code{TRUE}: Choose the R workspace image interactively via \code{\link[svDialogs]{dlg_dir}} and \code{\link[svDialogs]{dlg_list}}}
       #' \item{'ENV': See 'Details'}
       #' \item{\code{NULL|FALSE}: Use when no credentials are needed (connections will \emph{not} be secure)}
       #' }
