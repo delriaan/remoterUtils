@@ -4,5 +4,13 @@
 \alias{remoterUtils}
 \title{Utility Functions for \code{remoter}}
 \description{
-Package \code{remoterUtils} provides utility functions facilitating management of \code{remoter} sessions as well as authentication objects (see \code{\link[remoter]{remoter-package}} for \code{remoter} documentation).  Code is designed for use in a Windows environment.
+Package \code{remoterUtils} provides utility functions facilitating management of \code{remoter} sessions as well as authentication objects (see \code{\link[remoter]{remoter-package}} for \code{remoter} documentation).
 }
+\section{GitHub Dependencies}{
+
+\enumerate{
+\item{remotes::install_github("wrathematics/argon2")}
+\item{remotes::install_github("RBigData/remoter")}
+}
+}
+

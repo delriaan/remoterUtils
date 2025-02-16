@@ -7,7 +7,8 @@
 make_cipher_env(
   cipher = NULL,
   shared_key = NULL,
-  session = make.names(tolower(Sys.getenv("COMPUTERNAME")))
+  session = make.names(tolower(Sys.getenv("COMPUTERNAME"))),
+  set_env = FALSE
 )
 }
 \arguments{
@@ -16,10 +17,12 @@ make_cipher_env(
 \item{shared_key}{If the shared key was not included in the cipher object, this value is checked and throws an error if empty}
 
 \item{session}{The name of the session for which the environment variable string is created}
+
+\item{set_env}{(logical) Should an environment variable be set for the current session?}
 }
 \value{
-a JSON string that can be stored in a Windows OS environment variable formatted as "remoter_\if{html}{\out{<session>}}"
+a JSON string that can be stored in an environment variable formatted as "remoter_\if{html}{\out{<session>}}"
 }
 \description{
-\code{make_cipher_env}() creates a Windows OS environment variable string from the provided cipher. OS environment variables beginning with 'remoter_' and ending with the target session string are searched when calling \code{\link{connect_remote}} with \code{credentials = "ENV"}.
+\code{make_cipher_env}() creates anenvironment variable string from the provided cipher. OS environment variables beginning with 'remoter_' and ending with the target session string are searched when calling \code{\link{connect_remote}} with \code{credentials = "ENV"}.
 }

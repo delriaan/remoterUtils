@@ -7,12 +7,12 @@
 server_fun(
   auth_root = path.expand("~"),
   server_dir = "~",
-  session = make.names(tolower(Sys.getenv("COMPUTERNAME"))),
+  session = make.names(tolower(hostname())),
   ...
 )
 }
 \arguments{
-\item{auth_root}{The path to the authentication objects to read ('.rdata' files) containing the ciphers and decryption keys.  These should be generated from \code{\link{make_cipher}}}
+\item{auth_root}{The path to the authentication objects to read ('.rdata' files) containing the ciphers and decryption keys. These should be generated from \code{\link{make_cipher}}}
 
 \item{server_dir}{The path to the working directory for the spawned server}
 

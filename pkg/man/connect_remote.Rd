@@ -68,7 +68,7 @@ The content of the variable should be a JSON string created with \code{\link{mak
   credentials = NULL,
   prompt = "REMOTE_SESSION",
   port = NULL,
-  session = make.names(tolower(Sys.getenv("COMPUTERNAME"))),
+  session = make.names(hostname()),
   ...
 )}\if{html}{\out{</div>}}
 }

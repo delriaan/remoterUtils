@@ -5,7 +5,8 @@
 \title{Create \code{remoter} Authorization Objects}
 \usage{
 make_cipher(
-  file_prefix = make.names(tolower(Sys.getenv("COMPUTERNAME"))),
+  file_prefix = hostname(),
+  hostname = hostname(),
   host_ip,
   host_port,
   password,
@@ -16,13 +17,15 @@ make_cipher(
 \arguments{
 \item{file_prefix}{(string) The prefix for the output file in the user directory having suffix "_remoter_auth.rdata"}
 
-\item{host_ip}{(string) The IPV4 address for the server (hostnames are not allowed).}
+\item{hostname}{(string) The label to use for the server}
 
-\item{host_port}{(string,integer) The port to use for the server: should be a static, reserved port}
+\item{host_ip}{(string) \emph{(required)} The IPV4 address for the server (hostnames are not allowed).}
 
-\item{password}{(string) The password for the server}
+\item{host_port}{(string,integer) \emph{(required)} The port to use for the server: should be a static, reserved port}
 
-\item{shared_key}{(string) The key to encrypt and decrypt the generated cipher}
+\item{password}{(string) \emph{(required)} The password for the server}
+
+\item{shared_key}{(string) \emph{(required)} The key to encrypt and decrypt the generated cipher}
 
 \item{export}{(logical | \code{FALSE}) When \code{TRUE}, the cipher will be saved to the user directory as "~/"\code{file_prefix}_\code{remoter_auth.rdata}"}
 }
@@ -30,5 +33,5 @@ make_cipher(
 The cipher (invisibly) having required attributes \code{nonce}, \code{port}, and \code{addr}
 }
 \description{
-\code{remoter_auth} creates an encrypted object used to securely start and connect to a \code{remoter} session (see \code{\link[remoter]{remoter-package}} for documentation)
+\code{make_cipher} creates an encrypted object used to securely start and connect to a \code{remoter} session (see \code{\link[remoter]{remoter-package}} for documentation)
 }

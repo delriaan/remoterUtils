@@ -37,7 +37,7 @@ connect_remote <- R6::R6Class(
       #' \item{\code{\link[remoter]{s2c}}}
       #' \item{\code{\link[remoter]{exit}}}
       #' }
-      initialize = function(credentials = NULL, prompt = "REMOTE_SESSION", port = NULL, session = make.names(tolower(Sys.getenv("COMPUTERNAME"))), ...){
+      initialize = function(credentials = NULL, prompt = "REMOTE_SESSION", port = NULL, session = make.names(hostname()), ...){
         force(prompt)
         if (!stringi::stri_detect_regex(prompt, "[:]{2}$")){ prompt <- paste0(prompt, "::") }
 
@@ -54,28 +54,30 @@ connect_remote <- R6::R6Class(
         # Set the local environment ----
         eval(rlang::exprs(
           `TRUE` = {
-              .root <- svDialogs::dlg_dir(
-                default = getwd()
-                , title = "Choose the directory holding the cipher and key files (created with `make_cipher()`):"
-                );
+              .root <- readline("Choose the directory holding the cipher and key files (created with `make_cipher()`):")
+              if (!dir.exists(.root)){
+                cli::cli_warn("[{(.root)}] does not exist: defaulting to user home directory ...")
+                .root <- path.expand("~")
+              }
 
-              # browser();
+              .file <- dir(.root, pattern = "remoter.+rdata$", full.names = TRUE, recursive = TRUE)
 
-              svDialogs::dlg_list(
-                choices = dir(.root$res
-                              , pattern = "rdata"
-                              , ignore.case = TRUE
-                              , full.names = TRUE
-                              , all.files = TRUE
-                              )
-                , title = "Select the workspace image file containing the cipher and key:"
-                )$res |>
-                load();
+              if (length(.file) > 1){
+                cli::cli_alert_info("Found multiple files:\n")
+                .file <- tcltk::tk_select.list(
+                  .file
+                  , preselect = 1
+                  , title = "Choose the index of the file containing the cipher and key [1]:"
+                  )
+              }
+              
+              # Load the contents of <file> into the local environment:
+              load(.file);
 
               this <- ls(pattern = "cipher", all.names = TRUE);
 
               if (length(this) > 1){
-                this <- svDialogs::dlg_list(
+                this <- tcltk::tk_select.list(
                   choices = this
                   , preselect = this[1]
                   , title = "Choose a cipher object to use: "
@@ -85,7 +87,11 @@ connect_remote <- R6::R6Class(
               this <- ls(pattern = "key", all.names = TRUE);
 
               if (length(this) > 1) {
-                this <- svDialogs::dlg_list(choices = this, preselect = this[1], title = "Choose a decryption key object to use: ")
+                this <- tcltk::tk_select.list(
+                  choices = this
+                  , preselect = this[1]
+                  , title = "Choose a decryption key object to use: "
+                  )
               }
               shared_key <- get(this);
           }
@@ -110,10 +116,11 @@ connect_remote <- R6::R6Class(
               attr(cipher, "port") <- os_env_var[[session]]$port;
             }
           , OBJ = {
+              browser()
               this <- ls(pattern = "cipher", all.names = TRUE, envir = as.environment(credentials));
 
               if (length(this) > 1) {
-                this <- svDialogs::dlg_list(
+                this <- tcltk::tk_select.list(
                   choices = this
                   , preselect = this[1]
                   , title = "Choose a cipher object to use: "
@@ -124,7 +131,7 @@ connect_remote <- R6::R6Class(
               this <- ls(pattern = "key", all.names = TRUE, envir = as.environment(credentials));
 
               if (length(this) > 1) {
-                this <- svDialogs::dlg_list(
+                this <- tcltk::tk_select.list(
                   choices = this
                   , preselect = this[1]
                   , title = "Choose a decryption key object to use: "
@@ -133,7 +140,7 @@ connect_remote <- R6::R6Class(
               shared_key <- (as.environment(credentials))[[this]]
             }
           , default = {
-              message("No valid values for argument 'credentials': exiting ...");
+              cli::cli_alert_warning("No valid values for argument 'credentials': exiting ...");
               return();
             }
           )[[.cred_type]]);
@@ -184,8 +191,7 @@ connect_remote <- R6::R6Class(
         action <- rlang::enexpr(action) |> as.character();
 
         # Which function to use?
-        fun <- match.arg(action, choices = c("client", "batch")) |>
-          sprintf(fmt = "remoter::%s") |>
+        fun <- glue::glue("remoter::{match.arg(action, choices = c(\"client\", \"batch\"))}") |>
           rlang::parse_expr() |>
           eval();
 
